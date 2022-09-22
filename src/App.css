@@ -13,3 +13,7 @@
     flex-grow: 1;
     overflow: auto;
 }
+
+.Line {
+    word-break: break-word;
+}

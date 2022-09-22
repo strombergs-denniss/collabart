@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
 import { Form, Input, Button, List } from 'antd'
-import { createLine, deleteLine } from './Firebase'
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { createLine, deleteLine, getUsers, updateLine } from './Firebase'
 import 'antd/dist/antd.css'
 import './App.css'
 
@@ -76,10 +77,13 @@ function Auth() {
     )
 }
 
-function Lines() {
+function Lines(props) {
+    const { user, users } = props
     const [lines, setLines] = useState([])
     const [input, setInput] = useState('')
-    
+    const [editableLine, setEditableLine] = useState(null)
+    const ref = useRef({})
+
     useEffect(() => {
         const lineQuery = query(collection(firestore, 'lines'), orderBy('timestamp'))
 
@@ -98,7 +102,13 @@ function Lines() {
     }, [])
 
     const renderItem = item => {
-        const { id, data } = item
+        const { id, data, uid } = item
+        const lineUser = users.find(user => uid == user.id) || {}
+
+        const onEdit = () => {
+            setEditableLine(item)
+            setInput(data)
+        }
 
         const onDelete = () => {
             deleteLine(firestore, id)
@@ -106,21 +116,42 @@ function Lines() {
 
         return (
             <List.Item
-                actions={[
-                    <a onClick={ onDelete } key="delete">Delete</a>
-                ]}
+                className="Line"
+                actions={ user.uid === uid ? [
+                    <Button type="link" shape="circle" onClick={ onEdit } key="edit">
+                        <EditOutlined />
+                    </Button>,
+                    <Button type="link" shape="circle" onClick={ onDelete } key="delete">
+                        <DeleteOutlined />
+                    </Button>
+                ] : [] }
             >
-                { data }
+                <List.Item.Meta
+                    title={ lineUser.name }
+                    description={ data }
+                />
             </List.Item>
         )
     }
 
     const onPressEnter = e => {
-        e.preventDefault()
+        if (!e.shiftKey) {
+            e.preventDefault()
 
-        if (input) {
-            createLine(firestore, { data: input })
-            setInput('')
+            if (input) {
+                if (editableLine) {
+                    updateLine(firestore, editableLine.id, input)
+                    setEditableLine(null)
+                    setInput('')
+                } else {
+                    createLine(firestore, { uid: user.uid, data: input })
+                    setInput('')
+
+                    if (ref.current) {
+                        ref.current.scrollTo(0, ref.current.scrollHeight + 73)
+                    }
+                }
+            }
         }
     }
 
@@ -130,13 +161,21 @@ function Lines() {
 
     return (
         <div className="Lines">
-            <div className="Lines-Wrapper">
+            <div className="Lines-Wrapper" ref={ ref }>
                 <List
                     dataSource={ lines }
                     renderItem={ renderItem }
                 />
             </div>
-            <Input.TextArea value={ input } showCount rows={ 2 } maxLength={ 640 } onPressEnter={ onPressEnter } onChange={ onChange } autoSize />
+            <Input.TextArea
+                value={ input } 
+                showCount
+                rows={ 2 }
+                maxLength={ 640 }
+                onPressEnter={ onPressEnter }
+                onChange={ onChange }
+                autoSize
+            />
         </div>
     )
 }
@@ -144,15 +183,21 @@ function Lines() {
 function App() {
     const [user, setUser] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [users, setUsers] = useState(null)
 
     useEffect(() => {
         onAuthStateChanged(auth, user => {
             setUser(user)
             setIsLoading(false)
         })
+
+        getUsers(firestore, users => {
+            setUsers(users)
+            setIsLoading(false)
+        })
     }, [])
 
-    if (isLoading) {
+    if (isLoading && !users) {
         return (
             <>
                 Loading
@@ -168,7 +213,7 @@ function App() {
 
     return (
         <>
-            <Lines />
+            <Lines user={ user } users={ users} />
         </>
     )
 }
