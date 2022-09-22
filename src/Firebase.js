@@ -27,7 +27,6 @@ async function createLine(fs, { uid, data }) {
     return line
 }
 
-
 async function updateLine(fs, id, data) {
     await setDoc(doc(fs, 'lines', id), {
         data
@@ -38,10 +37,19 @@ async function deleteLine(fs, id) {
     await deleteDoc(doc(fs, 'lines', id))
 }
 
+async function createUser(fs, { uid, name }) {
+    console.log(uid, name)
+
+    await setDoc(doc(fs, 'users', uid), {
+        name
+    })
+}
+
 export {
     getLines,
     createLine,
     deleteLine,
     getUsers,
-    updateLine
+    updateLine,
+    createUser
 }

@@ -4,7 +4,7 @@ import { getFirestore, collection, onSnapshot, query, orderBy } from 'firebase/f
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
 import { Form, Input, Button, List } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
-import { createLine, deleteLine, getUsers, updateLine } from './Firebase'
+import { createLine, deleteLine, getUsers, updateLine, createUser } from './Firebase'
 import 'antd/dist/antd.css'
 import './App.css'
 
@@ -24,20 +24,20 @@ function Auth() {
     const [mode, setMode] = useState(true)
 
     const onFinish = values => {
-        const { email, password } = values
+        const { email, name, password } = values
 
         if (mode) {
             signInWithEmailAndPassword(auth, email, password)
-                .then(credential => {
-                    console.log(credential.user)
-                })
                 .catch(error => {
                     console.error(error)
                 })
         } else {
             createUserWithEmailAndPassword(auth, email, password)
                 .then(credential => {
-                    console.log(credential.user)
+                    createUser(firestore, {
+                        uid: credential.user.uid,
+                        name
+                    })
                 })
                 .catch(error => {
                     console.error(error)
@@ -58,6 +58,15 @@ function Auth() {
             >
                 <Input />
             </Form.Item>
+            { !mode && (
+                <Form.Item
+                    label="Name"
+                    name="name"
+                    rules={[{ required: true, message: 'Name must not be empty' }]}
+                >
+                    <Input />
+                </Form.Item>
+            )}
             <Form.Item
                 label="Password"
                 name="password"
@@ -144,11 +153,18 @@ function Lines(props) {
                     setEditableLine(null)
                     setInput('')
                 } else {
-                    createLine(firestore, { uid: user.uid, data: input })
-                    setInput('')
+                    const lastLine = lines[lines.length - 1]
+                    const lineUser = users.indexOf(users.find(u => user.uid == u.id) || {})
+                    const previousUserIndex = (users.length + (lineUser - 1) % users.length) % users.length
+                    const previousUser = users[previousUserIndex]
 
-                    if (ref.current) {
-                        ref.current.scrollTo(0, ref.current.scrollHeight + 73)
+                    if (lastLine.uid === previousUser.id) {
+                        createLine(firestore, { uid: user.uid, data: input })
+                        setInput('')
+
+                        if (ref.current) {
+                            ref.current.scrollTo(0, ref.current.scrollHeight + 100)
+                        }
                     }
                 }
             }
