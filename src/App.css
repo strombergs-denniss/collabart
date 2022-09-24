@@ -31,3 +31,13 @@
     word-break: break-word;
     white-space: pre-wrap;
 }
+
+.Line-User {
+    color: rgb(128, 128, 128);
+    font-style: italic;
+    font-size: 12px;
+}
+
+.Line-Data {
+    font-size: 16px;
+}

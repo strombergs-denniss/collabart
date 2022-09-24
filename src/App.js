@@ -138,10 +138,14 @@ function Lines(props) {
                     </Button>
                 ] : [] }
             >
-                <List.Item.Meta
-                    title={ lineUser.name }
-                    description={ data }
-                />
+                <div className="Line-Content">
+                    <div className="Line-User">
+                        { lineUser.name }
+                    </div>
+                    <div className="Line-Data">
+                        { data }
+                    </div>
+                </div>
             </List.Item>
         )
     }
