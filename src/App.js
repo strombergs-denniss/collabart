@@ -141,10 +141,7 @@ function Lines(props) {
                     </Button>
                 ] : [] }
             >
-                <div className="Line-Content">
-                    <div className="Line-User">
-                        { lineUser.name }
-                    </div>
+                <div className="Line-Content" style={{ color: lineUser.color }}>
                     <div className="Line-Data">
                         { data }
                     </div>
@@ -233,9 +230,9 @@ function Lines(props) {
                 <p>You are about to delete this line!</p>
             </Modal>
             <div>
-                <span>
-                    { `${ nextUser && nextUser.name }'s turn` }
-                </span>
+                { nextUser && (<span style={{ color: nextUser.color }}>
+                    { `${ nextUser.name }'s turn` }
+                </span>) }
                 { editableLine && (<Button type="link" onClick={ cancelEdit }>
                     Cancel Edit
                 </Button>) }
