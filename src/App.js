@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
-import { Form, Input, Button, List } from 'antd'
+import { Form, Input, Button, List, Typography } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { createLine, deleteLine, getUsers, updateLine, createUser } from './Firebase'
 import 'antd/dist/antd.css'
@@ -50,39 +50,44 @@ function Auth() {
     }
 
     return (
-        <Form onFinish={ onFinish }>
-            <Form.Item
-                label="Email"
-                name="email"
-                rules={[{ type: 'email', required: true, message: 'Email must not be empty' }]}
-            >
-                <Input />
-            </Form.Item>
-            { !mode && (
+        <div className="Auth">
+            <Typography.Title level={ 1 }>
+                { mode ? 'Sign In' : 'Create' }
+            </Typography.Title>
+            <Form className="Auth-Form" onFinish={ onFinish }>
                 <Form.Item
-                    label="Name"
-                    name="name"
-                    rules={[{ required: true, message: 'Name must not be empty' }]}
+                    label="Email"
+                    name="email"
+                    rules={[{ type: 'email', required: true, message: 'Email must not be empty' }]}
                 >
                     <Input />
                 </Form.Item>
-            )}
-            <Form.Item
-                label="Password"
-                name="password"
-                rules={[{ required: true, message: 'Password must not be empty' }]}
-            >
-                <Input.Password />
-            </Form.Item>
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    { mode ? 'Sign In' : 'Create' }
-                </Button>
-                <Button type="link" htmlType="button" onClick={ onSwitchMode }>
-                    { mode ? 'Create' : 'Sign In' }
-                </Button>
-            </Form.Item>
-        </Form>
+                { !mode && (
+                    <Form.Item
+                        label="Name"
+                        name="name"
+                        rules={[{ required: true, message: 'Name must not be empty' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                )}
+                <Form.Item
+                    label="Password"
+                    name="password"
+                    rules={[{ required: true, message: 'Password must not be empty' }]}
+                >
+                    <Input.Password />
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                        { mode ? 'Sign In' : 'Create' }
+                    </Button>
+                    <Button type="link" htmlType="button" onClick={ onSwitchMode }>
+                        { mode ? 'Create' : 'Sign In' }
+                    </Button>
+                </Form.Item>
+            </Form>
+        </div>
     )
 }
 
@@ -94,9 +99,7 @@ function Lines(props) {
     const ref = useRef({})
 
     useEffect(() => {
-        const lineQuery = query(collection(firestore, 'lines'), orderBy('timestamp'))
-
-        onSnapshot(lineQuery, snapshot => {
+        onSnapshot(query(collection(firestore, 'lines'), orderBy('timestamp')), snapshot => {
             const lines = []
 
             snapshot.forEach(doc => {
@@ -115,7 +118,7 @@ function Lines(props) {
         const lineUser = users.find(user => uid == user.id) || {}
 
         const onEdit = () => {
-            setEditableLine(item)
+            setEditableLine(item.id)
             setInput(data)
         }
 
@@ -149,13 +152,13 @@ function Lines(props) {
 
             if (input) {
                 if (editableLine) {
-                    updateLine(firestore, editableLine.id, input)
+                    updateLine(firestore, editableLine, input)
                     setEditableLine(null)
                     setInput('')
                 } else {
                     const lastLine = lines[lines.length - 1]
-                    const lineUser = users.indexOf(users.find(u => user.uid == u.id) || {})
-                    const previousUserIndex = (users.length + (lineUser - 1) % users.length) % users.length
+                    const userIndex = users.indexOf(users.find(u => user.uid == u.id) || {})
+                    const previousUserIndex = (users.length + (userIndex - 1) % users.length) % users.length
                     const previousUser = users[previousUserIndex]
 
                     if (lastLine.uid === previousUser.id) {
@@ -175,6 +178,11 @@ function Lines(props) {
         setInput(e.target.value)
     }
 
+    const lastLine = lines[lines.length - 1]
+    const lastLineUserIndex = users.findIndex(u => u.id === lastLine.uid)
+    const nextUserIndex = (users.length + (lastLineUserIndex + 1) % users.length) % users.length
+    const nextUser = users[nextUserIndex]
+
     return (
         <div className="Lines">
             <div className="Lines-Wrapper" ref={ ref }>
@@ -182,6 +190,9 @@ function Lines(props) {
                     dataSource={ lines }
                     renderItem={ renderItem }
                 />
+            </div>
+            <div>
+                { `${ nextUser.name }'s turn` }
             </div>
             <Input.TextArea
                 value={ input } 
@@ -198,8 +209,8 @@ function Lines(props) {
 
 function App() {
     const [user, setUser] = useState(null)
-    const [isLoading, setIsLoading] = useState(true)
     const [users, setUsers] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         onAuthStateChanged(auth, user => {
@@ -207,9 +218,19 @@ function App() {
             setIsLoading(false)
         })
 
-        getUsers(firestore, users => {
+        onSnapshot(query(collection(firestore, 'users')), snapshot => {
+            const users = []
+
+            snapshot.forEach(doc => {
+                users.push({
+                    id: doc.id,
+                    ...doc.data()
+                })
+            })
+
+            console.log(users)
+
             setUsers(users)
-            setIsLoading(false)
         })
     }, [])
 
@@ -228,9 +249,9 @@ function App() {
     }
 
     return (
-        <>
+        <div className="App">
             <Lines user={ user } users={ users} />
-        </>
+        </div>
     )
 }
 

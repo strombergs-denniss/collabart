@@ -1,6 +1,19 @@
 #root {
 }
 
+.Auth {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.Auth-Form {
+    max-width: 320px;
+}
+
 .Lines {
     padding: 16px;
     display: flex;
@@ -16,4 +29,5 @@
 
 .Line {
     word-break: break-word;
+    white-space: pre-wrap;
 }
