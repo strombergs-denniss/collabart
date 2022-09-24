@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
-import { Form, Input, Button, List, Typography } from 'antd'
+import { Form, Input, Button, List, Typography, Modal } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
-import { createLine, deleteLine, getUsers, updateLine, createUser } from './Firebase'
+import { createLine, deleteLine, updateLine, createUser } from './Firebase'
 import 'antd/dist/antd.css'
 import './App.css'
 
@@ -96,6 +96,8 @@ function Lines(props) {
     const [lines, setLines] = useState([])
     const [input, setInput] = useState('')
     const [editableLine, setEditableLine] = useState(null)
+    const [deletableLine, setDeletableLine] = useState(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
     const ref = useRef({})
 
     useEffect(() => {
@@ -114,7 +116,7 @@ function Lines(props) {
     }, [])
 
     const renderItem = item => {
-        const { id, data, uid } = item
+        const { data, uid } = item
         const lineUser = users.find(user => uid == user.id) || {}
 
         const onEdit = () => {
@@ -123,7 +125,8 @@ function Lines(props) {
         }
 
         const onDelete = () => {
-            deleteLine(firestore, id)
+            setDeletableLine(item.id)
+            setIsModalOpen(true)
         }
 
         return (
@@ -182,10 +185,36 @@ function Lines(props) {
         setInput(e.target.value)
     }
 
-    const lastLine = lines[lines.length - 1]
-    const lastLineUserIndex = users.findIndex(u => u.id === lastLine.uid)
-    const nextUserIndex = (users.length + (lastLineUserIndex + 1) % users.length) % users.length
-    const nextUser = users[nextUserIndex]
+    const cancelEdit = () => {
+        setEditableLine(null)
+        setInput('')
+    }
+
+    const handleOk = () => {
+        deleteLine(firestore, deletableLine)
+        setIsModalOpen(false)
+        setDeletableLine(null)
+    }
+    
+    const handleCancel = () => {
+        setIsModalOpen(false)
+    }
+
+    function getNextUser() {
+        const lastLine = lines[lines.length - 1]
+        
+        if (!lastLine) {
+            return null
+        }
+
+        const lastLineUserIndex = users.findIndex(u => u.id === lastLine.uid)
+        const nextUserIndex = (users.length + (lastLineUserIndex + 1) % users.length) % users.length
+        const nextUser = users[nextUserIndex]
+
+        return nextUser
+    }
+
+    const nextUser = getNextUser()
 
     return (
         <div className="Lines">
@@ -195,8 +224,21 @@ function Lines(props) {
                     renderItem={ renderItem }
                 />
             </div>
+            <Modal
+                title="Delete line"
+                open={ isModalOpen }
+                onOk={ handleOk }
+                onCancel={ handleCancel }
+            >
+                <p>You are about to delete this line!</p>
+            </Modal>
             <div>
-                { `${ nextUser.name }'s turn` }
+                <span>
+                    { `${ nextUser && nextUser.name }'s turn` }
+                </span>
+                { editableLine && (<Button type="link" onClick={ cancelEdit }>
+                    Cancel Edit
+                </Button>) }
             </div>
             <Input.TextArea
                 value={ input } 
@@ -213,7 +255,7 @@ function Lines(props) {
 
 function App() {
     const [user, setUser] = useState(null)
-    const [users, setUsers] = useState(null)
+    const [users, setUsers] = useState([])
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
@@ -238,7 +280,7 @@ function App() {
         })
     }, [])
 
-    if (isLoading && !users) {
+    if (isLoading || !users.length) {
         return (
             <>
                 Loading
@@ -254,7 +296,7 @@ function App() {
 
     return (
         <div className="App">
-            <Lines user={ user } users={ users} />
+            <Lines user={ user } users={ users } />
         </div>
     )
 }
