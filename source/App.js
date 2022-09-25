@@ -4,7 +4,7 @@ import { getFirestore, collection, onSnapshot, query, orderBy } from 'firebase/f
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
 import { Form, Input, Button, List, Typography, Modal } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
-import { createLine, deleteLine, updateLine, createUser } from './Firebase'
+import { createLine, deleteLine, updateLine, createUser, LINE_COLLECTION } from './Firebase'
 import './App.less'
 
 const firebase = initializeApp({
@@ -100,7 +100,7 @@ function Lines(props) {
     const ref = useRef({})
 
     useEffect(() => {
-        onSnapshot(query(collection(firestore, 'lines'), orderBy('timestamp')), snapshot => {
+        onSnapshot(query(collection(firestore, LINE_COLLECTION), orderBy('timestamp')), snapshot => {
             const lines = []
 
             snapshot.forEach(doc => {
@@ -267,6 +267,8 @@ function App() {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
+        Notification.requestPermission()
+
         onAuthStateChanged(auth, user => {
             setUser(user)
             setIsLoading(false)

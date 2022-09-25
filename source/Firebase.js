@@ -1,7 +1,9 @@
 import { collection, getDocs, addDoc, serverTimestamp, deleteDoc, doc, setDoc } from 'firebase/firestore'
 
+const LINE_COLLECTION = 'lines'
+
 async function getLines(fs) {
-    const lineSnapshot = await getDocs(collection(fs, 'lines'))
+    const lineSnapshot = await getDocs(collection(fs, LINE_COLLECTION))
     const lineList = lineSnapshot.docs.map(doc => doc.data())
 
     return lineList
@@ -16,7 +18,7 @@ async function getUsers(fs, callback = () => {}) {
 
 async function createLine(fs, { uid, data }) {
     const line = await addDoc(
-        collection(fs, 'lines'),
+        collection(fs, LINE_COLLECTION),
         {
             uid,
             data,
@@ -28,13 +30,13 @@ async function createLine(fs, { uid, data }) {
 }
 
 async function updateLine(fs, id, data) {
-    await setDoc(doc(fs, 'lines', id), {
+    await setDoc(doc(fs, LINE_COLLECTION, id), {
         data
     }, { merge: true })
 }
 
 async function deleteLine(fs, id) {
-    await deleteDoc(doc(fs, 'lines', id))
+    await deleteDoc(doc(fs, LINE_COLLECTION, id))
 }
 
 async function createUser(fs, { uid, name }) {
@@ -46,6 +48,7 @@ async function createUser(fs, { uid, name }) {
 }
 
 export {
+    LINE_COLLECTION,
     getLines,
     createLine,
     deleteLine,
