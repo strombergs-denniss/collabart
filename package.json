@@ -4,7 +4,8 @@
     "description": "A simple app for collaboratively creating stories and probably other stuff in future.",
     "private": true,
     "scripts": {
-        "start": "webpack serve --config ./webpack.dev.js"
+        "start": "webpack serve --config ./webpack.dev.js",
+        "build": "webpack --config ./webpack.prod.js"
     },
     "repository": {
         "type": "git",
