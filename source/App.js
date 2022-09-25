@@ -5,8 +5,7 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWith
 import { Form, Input, Button, List, Typography, Modal } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { createLine, deleteLine, updateLine, createUser } from './Firebase'
-import 'antd/dist/antd.css'
-import './App.css'
+import './App.less'
 
 const firebase = initializeApp({
     apiKey: process.env.REACT_APP_API_KEY,
