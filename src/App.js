@@ -161,6 +161,18 @@ function Lines(props) {
                     setInput('')
                 } else {
                     const lastLine = lines[lines.length - 1]
+
+                    if (!lastLine) {
+                        if (user.uid === users[0].id) {
+                            createLine(firestore, { uid: user.uid, data: input })
+                            setInput('')
+
+                            if (ref.current) {
+                                ref.current.scrollTo(0, ref.current.scrollHeight + 100)
+                            }
+                        }
+                    }
+
                     const userIndex = users.indexOf(users.find(u => user.uid == u.id) || {})
                     const previousUserIndex = (users.length + (userIndex - 1) % users.length) % users.length
                     const previousUser = users[previousUserIndex]
@@ -201,7 +213,7 @@ function Lines(props) {
         const lastLine = lines[lines.length - 1]
         
         if (!lastLine) {
-            return null
+            return users[0]
         }
 
         const lastLineUserIndex = users.findIndex(u => u.id === lastLine.uid)
@@ -261,7 +273,7 @@ function App() {
             setIsLoading(false)
         })
 
-        onSnapshot(query(collection(firestore, 'users')), snapshot => {
+        onSnapshot(query(collection(firestore, 'users'), orderBy('order')), snapshot => {
             const users = []
 
             snapshot.forEach(doc => {
@@ -270,8 +282,6 @@ function App() {
                     ...doc.data()
                 })
             })
-
-            console.log(users)
 
             setUsers(users)
         })
