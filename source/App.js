@@ -6,6 +6,10 @@ import { Form, Input, Button, List, Typography, Modal } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { createLine, deleteLine, updateLine, createUser, LINE_COLLECTION } from './Firebase'
 import './App.less'
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import Stories from './Stories'
+import Story from './Story'
+import { Lines as StoryLines } from './Lines'
 
 const firebase = initializeApp({
     apiKey: process.env.REACT_APP_API_KEY,
@@ -304,7 +308,14 @@ function App() {
 
     return (
         <div className="App">
-            <Lines user={ user } users={ users } />
+            <Router>
+                <Routes>
+                    <Route path="/" element={ <Lines user={ user } users={ users } /> } />
+                    <Route path="/stories" element={ <Stories firestore={ firestore } /> } />
+                    <Route path="/stories/:id" element={ <Story /> } />
+                    <Route path="/stories/:id/lines" element={ <StoryLines /> } />
+                </Routes>
+            </Router>
         </div>
     )
 }

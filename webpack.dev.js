@@ -6,7 +6,8 @@ module.exports = {
     entry: './source/index.js',
     output: {
         filename: 'index.js',
-        path: path.resolve(__dirname, 'build')
+        path: path.resolve(__dirname, 'build'),
+        publicPath: '/'
     },
     module: {
         rules: [
@@ -40,7 +41,10 @@ module.exports = {
             directory: path.join(__dirname, 'public')
         },
         compress: true,
-        port: 3000
+        port: 3000,
+        historyApiFallback: {
+            index: '/'
+        }
     },
     plugins: [
         new Dotenv()
