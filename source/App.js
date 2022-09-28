@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, onSnapshot, query, orderBy } from 'firebase/firestore'
+import { getFirestore, collection, onSnapshot, query, orderBy, where } from 'firebase/firestore'
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
 import { Form, Input, Button, List, Typography, Modal } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
@@ -278,7 +278,7 @@ function App() {
             setIsLoading(false)
         })
 
-        onSnapshot(query(collection(firestore, 'users'), orderBy('order')), snapshot => {
+        onSnapshot(query(collection(firestore, 'users'), orderBy('order'), where('order', '>', -1)), snapshot => {
             const users = []
 
             snapshot.forEach(doc => {
