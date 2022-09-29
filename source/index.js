@@ -1,12 +1,13 @@
+import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
-import { initializeApp } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
+
+import App from './App'
 import Context from './Context'
 import store from './store'
-import App from './App'
 
 const firebase = initializeApp({
     apiKey: process.env.API_KEY,

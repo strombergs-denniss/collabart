@@ -1,5 +1,6 @@
 const path = require('path')
 const Dotenv = require('dotenv-webpack')
+const ESLintPlugin = require('eslint-webpack-plugin')
 
 module.exports = {
     mode: 'development',
@@ -47,6 +48,7 @@ module.exports = {
         }
     },
     plugins: [
-        new Dotenv()
+        new Dotenv(),
+        new ESLintPlugin()
     ]
 }

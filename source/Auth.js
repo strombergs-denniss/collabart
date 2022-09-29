@@ -1,10 +1,12 @@
 import { Button, Form, Input, Typography } from 'antd'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { useContext, useState } from 'react'
+
 import Context from './Context'
 import { createUser } from './Firebase'
 
 function Auth() {
-    const { auth } = useContext(Context)
+    const { db, auth } = useContext(Context)
     const [mode, setMode] = useState(true)
 
     const onFinish = values => {
@@ -18,7 +20,7 @@ function Auth() {
         } else {
             createUserWithEmailAndPassword(auth, email, password)
                 .then(credential => {
-                    createUser(firestore, {
+                    createUser(db, {
                         uid: credential.user.uid,
                         name
                     })

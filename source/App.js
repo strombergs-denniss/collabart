@@ -1,16 +1,19 @@
-import { useContext, useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import './App.less'
+
 import { onAuthStateChanged } from 'firebase/auth'
 import { onSnapshot } from 'firebase/firestore'
-import Context from './Context'
-import { setUser, setUsers } from './userSlice'
-import { userQuery } from './Firebase'
+import { useContext, useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+
 import Auth from './Auth'
+import Context from './Context'
+import { usersQuery } from './Firebase'
 import Home from './Home'
+import Loader from './Loader'
 import Stories from './Stories'
 import Story from './Story'
-import './App.less'
+import { setUser, setUsers } from './userSlice'
 
 function App() {
     const dispatch = useDispatch()
@@ -27,7 +30,7 @@ function App() {
             setIsLoading(false)
         })
 
-        onSnapshot(userQuery(db), collection => {
+        onSnapshot(usersQuery(db), collection => {
             const users = []
 
             collection.forEach(doc => {
@@ -43,9 +46,7 @@ function App() {
 
     if (isLoading || !users.length) {
         return (
-            <div className="App">
-                Loading
-            </div>
+            <Loader />
         )
     }
 

@@ -1,9 +1,10 @@
-import { Button, Input, List, Modal } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { Button, Input, List, Modal } from 'antd'
 import { onSnapshot } from 'firebase/firestore'
 import { useContext, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
+
 import Context from './Context'
 import { createLine, deleteLine, linesQuery, updateLine } from './Firebase'
 
