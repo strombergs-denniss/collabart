@@ -1,58 +1,77 @@
-import { collection, getDocs, addDoc, serverTimestamp, deleteDoc, doc, setDoc } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, orderBy, query, serverTimestamp, setDoc, where } from 'firebase/firestore'
 
-const LINE_COLLECTION = 'lines'
+import { randomInt } from './Utility'
 
-async function getLines(fs) {
-    const lineSnapshot = await getDocs(collection(fs, LINE_COLLECTION))
-    const lineList = lineSnapshot.docs.map(doc => doc.data())
-
-    return lineList
+function usersQuery(db) {
+    return query(collection(db, 'users'), where('order', '>', -1), orderBy('order'))
 }
 
-async function getUsers(fs, callback = () => {}) {
-    const snapshot = await getDocs(collection(fs, 'users'))
-    const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-
-    callback(list)
+async function createUser(db, { uid, name }) {
+    return await setDoc(doc(db, 'users', uid), {
+        name,
+        order: 0,
+        color: '#000000'
+    })
 }
 
-async function createLine(fs, { uid, data }) {
-    const line = await addDoc(
-        collection(fs, LINE_COLLECTION),
+function storiesQuery(db) {
+    return query(collection(db, 'stories'), orderBy('name'))
+}
+
+function storyDoc(db, id) {
+    return doc(db, 'stories', id)
+}
+
+async function createStory(db, { name, description, inputLimit, players, allowTurnSkip }) {
+    return await addDoc(collection(db, 'stories'), {
+        name,
+        description,
+        inputLimit,
+        players,
+        allowTurnSkip,
+        currentPlayer: players[randomInt(0, players.length - 1)]
+    })
+}
+
+async function setNextPlayer(db, storyId, currentPlayer) {
+    return await setDoc(doc(db, `stories/${ storyId }`), {
+        currentPlayer
+    }, { merge: true })
+}
+
+function linesQuery(db, id) {
+    return query(collection(db, `stories/${ id }/lines`), orderBy('timestamp'))
+}
+
+async function createLine(db, storyId, { uid, data }) {
+    return await addDoc(
+        collection(db, `stories/${ storyId }/lines`),
         {
             uid,
             data,
             timestamp: serverTimestamp()
         }
     )
-
-    return line
 }
 
-async function updateLine(fs, id, data) {
-    await setDoc(doc(fs, LINE_COLLECTION, id), {
+async function updateLine(db, storyId, id, data) {
+    return await setDoc(doc(db, `stories/${ storyId }/lines`, id), {
         data
     }, { merge: true })
 }
 
-async function deleteLine(fs, id) {
-    await deleteDoc(doc(fs, LINE_COLLECTION, id))
-}
-
-async function createUser(fs, { uid, name }) {
-    console.log(uid, name)
-
-    await setDoc(doc(fs, 'users', uid), {
-        name
-    })
+async function deleteLine(db, storyId, id) {
+    return await deleteDoc(doc(db, `stories/${ storyId }/lines`, id))
 }
 
 export {
-    LINE_COLLECTION,
-    getLines,
     createLine,
+    createStory,
+    createUser,
     deleteLine,
-    getUsers,
+    linesQuery,
+    setNextPlayer,
+    storiesQuery,
+    storyDoc,
     updateLine,
-    createUser
-}
+    usersQuery}
