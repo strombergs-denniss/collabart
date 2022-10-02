@@ -6,7 +6,9 @@ import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 
 import Context from './Context'
-import { createLine, deleteLine, linesQuery, updateLine } from './Firebase'
+import { createLine, deleteLine, linesQuery, setNextPlayer, updateLine } from './Firebase'
+import SkipModal from './SkipModal'
+import { loop } from './Utility'
 
 function Lines(props) {
     const { story } = props
@@ -80,21 +82,14 @@ function Lines(props) {
                     setEditableLine(null)
                     setInput('')
                 } else {
-                    const lastLine = lines[lines.length - 1]
+                    const currentPlayer = users.find(user => user.id === story.currentPlayer)
+                    const currentIndex = story.players.findIndex(player => player === story.currentPlayer)
+                    const nextIndex = loop(currentIndex + 1, story.players.length)
+                    const nextPlayer = story.players[nextIndex]
 
-                    if (!lastLine) {
-                        if (user.id === users[0].id) {
-                            createLine(db, storyId, { uid: user.id, data: input })
-                            setInput('')
-                        }
-                    }
-
-                    const userIndex = users.indexOf(users.find(u => user.id == u.id) || {})
-                    const previousUserIndex = (users.length + (userIndex - 1) % users.length) % users.length
-                    const previousUser = users[previousUserIndex]
-
-                    if (lastLine.uid === previousUser.id) {
+                    if (currentPlayer && currentPlayer.id === user.id && nextPlayer) {
                         createLine(db, storyId, { uid: user.id, data: input })
+                        setNextPlayer(db, storyId, nextPlayer)
                         setInput('')
                     }
                 }
@@ -121,21 +116,7 @@ function Lines(props) {
         setIsModalOpen(false)
     }
 
-    function getNextUser() {
-        const lastLine = lines[lines.length - 1]
-        
-        if (!lastLine) {
-            return users[0]
-        }
-
-        const lastLineUserIndex = users.findIndex(u => u.id === lastLine.uid)
-        const nextUserIndex = (users.length + (lastLineUserIndex + 1) % users.length) % users.length
-        const nextUser = users[nextUserIndex]
-
-        return nextUser
-    }
-
-    const nextUser = getNextUser()
+    const currentPlayer = users.find(user => user.id === story.currentPlayer)
 
     return (
         <div className="Lines">
@@ -156,13 +137,21 @@ function Lines(props) {
                     You are about to delete this line!
                 </p>
             </Modal>
-            <div>
-                { nextUser && (<span style={{ color: nextUser.color }}>
-                    { `${ nextUser.name }'s turn` }
-                </span>) }
-                { editableLine && (<Button type="link" onClick={ cancelEdit }>
-                    Cancel Edit
-                </Button>) }
+            <div className="Lines-Controls">
+                { currentPlayer && (
+                    <span style={{ color: currentPlayer.color }}>
+                        { `TURN: ${ currentPlayer.name }` }
+                    </span>
+                ) }
+                { editableLine && (
+                    <Button type="link" onClick={ cancelEdit }>
+                        CANCEL EDIT
+                    </Button>
+                ) }
+                <SkipModal
+                    story={ story }
+                    editableLine={ editableLine }
+                />
             </div>
             <Input.TextArea
                 value={ input }

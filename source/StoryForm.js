@@ -1,4 +1,4 @@
-import { Form, Input, InputNumber, Select } from 'antd'
+import { Form, Input, InputNumber, Select, Switch } from 'antd'
 import { useSelector } from 'react-redux'
 
 function StoryForm(props) {
@@ -19,6 +19,8 @@ function StoryForm(props) {
             </Select.Option>
         )
     }
+
+    console.log(initialValues)
 
     return (
         <Form
@@ -82,6 +84,13 @@ function StoryForm(props) {
                 >
                     { users.map(renderUserOption) }
                 </Select>
+            </Form.Item>
+            <Form.Item
+                label="Allow Turn Skip"
+                name="allowTurnSkip"
+                valuePropName="checked"
+            >
+                <Switch disabled={ disabled } />
             </Form.Item>
         </Form>
     )

@@ -38,6 +38,9 @@ module.exports = {
         'react/react-in-jsx-scope': 'off',
         'react/prop-types': 'off',
         'simple-import-sort/imports': 'error',
-        'simple-import-sort/exports': 'error'
+        'simple-import-sort/exports': 'error',
+        'no-unused-vars': [
+            'warn'
+        ]
     }
 }
