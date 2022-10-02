@@ -85,6 +85,7 @@ function Stories() {
                 open={ isModalOpen }
                 onOk={ handleOk }
                 onCancel={ handleCancel }
+                width={ 1024 }
             >
                 <StoryForm form={ form } />
             </Modal>

@@ -150,6 +150,7 @@ function Lines(props) {
                 open={ isModalOpen }
                 onOk={ handleOk }
                 onCancel={ handleCancel }
+                width={ 512 }
             >
                 <p>
                     You are about to delete this line!
