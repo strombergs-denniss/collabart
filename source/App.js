@@ -24,9 +24,12 @@ function App() {
 
     useEffect(() => {
         onAuthStateChanged(auth, user => {
-            dispatch(setUser({
-                id: user.uid
-            }))
+            if (user) {
+                dispatch(setUser({
+                    id: user.uid
+                }))
+            }
+
             setIsLoading(false)
         })
 
