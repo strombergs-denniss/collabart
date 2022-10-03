@@ -6,12 +6,12 @@ import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 
 import Context from './Context'
-import { createLine, deleteLine, linesQuery, setNextPlayer, updateLine } from './Firebase'
+import { createLine, deleteLine, linesQuery, PAGE_SIZE, setNextPlayer, updateLine } from './Firebase'
 import SkipModal from './SkipModal'
 import { loop } from './Utility'
 
 function Lines(props) {
-    const { story } = props
+    const { story, mode } = props
     const { db } = useContext(Context)
     const { id: storyId } = useParams()
     const user = useSelector(state => state.user.user)
@@ -21,24 +21,27 @@ function Lines(props) {
     const [editableLine, setEditableLine] = useState(null)
     const [deletableLine, setDeletableLine] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [snap, setSnap] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        onSnapshot(linesQuery(db, storyId), collection => {
-            const lines = []
+        setSnap({
+            unsubscribe: onSnapshot(linesQuery(db, storyId), collection => {
+                const lines = []
 
-            collection.forEach(doc => {
-                lines.push({
-                    id: doc.id,
-                    ...doc.data()
+                collection.forEach(doc => {
+                    lines.unshift(doc)
                 })
-            })
 
-            setLines(lines)
+                setLines(lines)
+                setIsLoading(false)
+            })
         })
     }, [])
 
     const renderLine = line => {
-        const { id, uid, data } = line
+        const { id } = line
+        const { uid, data } = line.data()
         const lineUser = users.find(user => uid == user.id) || {}
 
         const onEdit = () => {
@@ -116,6 +119,44 @@ function Lines(props) {
         setIsModalOpen(false)
     }
 
+    const loadMore = () => {
+        if (isLoading) {
+            return
+        }
+
+        if (snap && lines.length === PAGE_SIZE) {
+            setIsLoading(true)
+            snap.unsubscribe()
+
+            setSnap({
+                unsubscribe: onSnapshot(linesQuery(db, storyId, lines[0]), collection => {
+                    const lines = []
+
+                    collection.forEach(doc => {
+                        lines.unshift(doc)
+                    })
+
+                    setLines(lines)
+                    setIsLoading(false)
+                })
+            })
+        }
+    }
+
+    const renderLoadMore = () => {
+        if (lines.length < PAGE_SIZE) {
+            return null
+        }
+
+        return (
+            <div className="Lines-LoadMore">
+                <Button onClick={ loadMore }>
+                    LOAD MORE
+                </Button>
+            </div>
+        )
+    }
+
     const currentPlayer = users.find(user => user.id === story.currentPlayer)
 
     return (
@@ -124,6 +165,8 @@ function Lines(props) {
                 <List
                     dataSource={ lines }
                     renderItem={ renderLine }
+                    loadMore={ renderLoadMore() }
+                    loading={ isLoading }
                 />
             </div>
             <Modal

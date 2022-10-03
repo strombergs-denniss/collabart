@@ -1,6 +1,8 @@
-import { addDoc, collection, deleteDoc, doc, orderBy, query, serverTimestamp, setDoc, where } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, limit, orderBy, query, serverTimestamp, setDoc, startAt, where } from 'firebase/firestore'
 
-import { randomInt } from './Utility'
+import { createDiff, randomInt } from './Utility'
+
+const PAGE_SIZE = 10
 
 function usersQuery(db) {
     return query(collection(db, 'users'), where('order', '>', -1), orderBy('order'))
@@ -33,14 +35,24 @@ async function createStory(db, { name, description, inputLimit, players, allowTu
     })
 }
 
+async function updateStory(db, oldStory, newStory) {
+    const diff = createDiff(oldStory, newStory)
+
+    return await setDoc(doc(db, `stories/${ oldStory.id }`), diff, { merge: true })
+}
+
 async function setNextPlayer(db, storyId, currentPlayer) {
     return await setDoc(doc(db, `stories/${ storyId }`), {
         currentPlayer
     }, { merge: true })
 }
 
-function linesQuery(db, id) {
-    return query(collection(db, `stories/${ id }/lines`), orderBy('timestamp'))
+function linesQuery(db, id, lastLine) {
+    if (lastLine) {
+        return query(collection(db, `stories/${ id }/lines`), orderBy('timestamp', 'desc'), limit(PAGE_SIZE), startAt(lastLine))
+    }
+
+    return query(collection(db, `stories/${ id }/lines`), orderBy('timestamp', 'desc'), limit(PAGE_SIZE))
 }
 
 async function createLine(db, storyId, { uid, data }) {
@@ -70,8 +82,11 @@ export {
     createUser,
     deleteLine,
     linesQuery,
+    PAGE_SIZE,
     setNextPlayer,
     storiesQuery,
     storyDoc,
     updateLine,
-    usersQuery}
+    updateStory,
+    usersQuery
+}

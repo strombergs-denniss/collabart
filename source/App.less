@@ -1,10 +1,12 @@
 @import '~antd/es/style/themes/default.less';
 @import '~antd/dist/antd.less';
 @import './Theme.less';
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
 
 #root {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto Mono', monospace;
+    scrollbar-width: thin;
+    scrollbar-color: #ffffff #0c0c0c;
 }
 
 .Auth {
@@ -62,6 +64,17 @@
     overflow: auto;
 }
 
+.Lines-Wrapper > div {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.Lines-LoadMore {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .Lines-Controls {
     display: flex;
     min-height: 32px;
@@ -81,4 +94,46 @@
 
 .Line-Data {
     font-size: 16px;
+}
+
+::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+}
+
+::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e1e1e1;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ffffff;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #000000;
+}
+
+::-webkit-scrollbar-track {
+    background: #666666;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+
+::-webkit-scrollbar-track:hover {
+    background: #666666;
+}
+
+::-webkit-scrollbar-track:active {
+    background: #333333;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }
