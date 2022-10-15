@@ -1,3 +1,4 @@
+import { FolderOpenOutlined } from '@ant-design/icons'
 import { Button, Form, List, Modal } from 'antd'
 import { onSnapshot } from 'firebase/firestore'
 import { useContext, useEffect, useState } from 'react'
@@ -6,7 +7,9 @@ import { useNavigate } from 'react-router-dom'
 import Context from './Context'
 import { createStory, storiesQuery } from './Firebase'
 import Loader from './Loader'
+import StoryExporter from './StoryExporter'
 import StoryForm from './StoryForm'
+import StoryImporter from './StoryImporter'
 
 function Stories() {
     const navigate = useNavigate()
@@ -55,8 +58,9 @@ function Stories() {
 
         const actions = [
             <Button type="link" shape="circle" onClick={ onClick } key="open">
-                Open
-            </Button>
+                <FolderOpenOutlined />
+            </Button>,
+            <StoryExporter key="export" />
         ]
 
         return (
@@ -77,9 +81,12 @@ function Stories() {
 
     return (
         <div className="Stories">
-            <Button onClick={ openModal } >
-                New
-            </Button>
+            <div className="Stories-Controls">
+                <Button onClick={ openModal } >
+                    NEW
+                </Button>
+                <StoryImporter />
+            </div>
             <Modal
                 title="New Story"
                 open={ isModalOpen }

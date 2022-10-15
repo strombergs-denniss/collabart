@@ -1,4 +1,4 @@
-import { Button, Form, Input, Typography } from 'antd'
+import { Button, Form, Input, notification, Typography } from 'antd'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { useContext, useState } from 'react'
 
@@ -14,8 +14,11 @@ function Auth() {
 
         if (mode) {
             signInWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    notification.success({ message: 'Successfully signed in' })
+                })
                 .catch(error => {
-                    console.error(error)
+                    notification.success({ message: 'Failed to sign in' })
                 })
         } else {
             createUserWithEmailAndPassword(auth, email, password)
@@ -24,9 +27,10 @@ function Auth() {
                         uid: credential.user.uid,
                         name
                     })
+                    notification.success({ message: 'Successfully created account' })
                 })
                 .catch(error => {
-                    console.error(error)
+                    notification.success({ message: 'Failed to create account' })
                 })
         }
     }

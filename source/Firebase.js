@@ -2,30 +2,32 @@ import { addDoc, collection, deleteDoc, doc, limit, orderBy, query, serverTimest
 
 import { createDiff, randomInt } from './Utility'
 
-const PAGE_SIZE = 10
+const USERS_COLLECTION = 'users'
+const STORIES_COLLECTION = 'stories'
+const LINES_COLLECTION = 'lines'
+const PAGE_SIZE = 16
 
 function usersQuery(db) {
-    return query(collection(db, 'users'), where('order', '>', -1), orderBy('order'))
+    return query(collection(db, USERS_COLLECTION), where('order', '>', -1), orderBy('order'))
 }
 
 async function createUser(db, { uid, name }) {
-    return await setDoc(doc(db, 'users', uid), {
+    return await setDoc(doc(db, USERS_COLLECTION, uid), {
         name,
-        order: 0,
-        color: '#000000'
+        color: '#ffffff'
     })
 }
 
 function storiesQuery(db) {
-    return query(collection(db, 'stories'), orderBy('name'))
+    return query(collection(db, STORIES_COLLECTION), orderBy('name'))
 }
 
 function storyDoc(db, id) {
-    return doc(db, 'stories', id)
+    return doc(db, STORIES_COLLECTION, id)
 }
 
 async function createStory(db, { name, description, inputLimit, players, allowTurnSkip }) {
-    return await addDoc(collection(db, 'stories'), {
+    return await addDoc(collection(db, STORIES_COLLECTION), {
         name,
         description,
         inputLimit,
@@ -38,26 +40,34 @@ async function createStory(db, { name, description, inputLimit, players, allowTu
 async function updateStory(db, oldStory, newStory) {
     const diff = createDiff(oldStory, newStory)
 
-    return await setDoc(doc(db, `stories/${ oldStory.id }`), diff, { merge: true })
+    return await setDoc(doc(db, `${ STORIES_COLLECTION }/${ oldStory.id }`), diff, { merge: true })
 }
 
 async function setNextPlayer(db, storyId, currentPlayer) {
-    return await setDoc(doc(db, `stories/${ storyId }`), {
+    return await setDoc(doc(db, `${ STORIES_COLLECTION }/${ storyId }`), {
         currentPlayer
     }, { merge: true })
 }
 
-function linesQuery(db, id, lastLine) {
+function linesQuery(db, id, lastLine, isReverse = false) {
     if (lastLine) {
-        return query(collection(db, `stories/${ id }/lines`), orderBy('timestamp', 'desc'), limit(PAGE_SIZE), startAt(lastLine))
+        if (isReverse) {
+            return query(collection(db, `${ STORIES_COLLECTION }/${ id }/${ LINES_COLLECTION }`), orderBy('timestamp', 'asc'), limit(PAGE_SIZE), startAt(lastLine))
+        }
+
+        return query(collection(db, `${ STORIES_COLLECTION }/${ id }/${ LINES_COLLECTION }`), orderBy('timestamp', 'desc'), limit(PAGE_SIZE), startAt(lastLine))
     }
 
-    return query(collection(db, `stories/${ id }/lines`), orderBy('timestamp', 'desc'), limit(PAGE_SIZE))
+    return query(collection(db, `${ STORIES_COLLECTION }/${ id }/${ LINES_COLLECTION }`), orderBy('timestamp', 'desc'), limit(PAGE_SIZE))
+}
+
+function lastLineQuery(db, id) {
+    return query(collection(db, `${ STORIES_COLLECTION }/${ id }/${ LINES_COLLECTION }`), orderBy('timestamp', 'desc'), limit(1))
 }
 
 async function createLine(db, storyId, { uid, data }) {
     return await addDoc(
-        collection(db, `stories/${ storyId }/lines`),
+        collection(db, `${ STORIES_COLLECTION }/${ storyId }/${ LINES_COLLECTION }`),
         {
             uid,
             data,
@@ -67,13 +77,13 @@ async function createLine(db, storyId, { uid, data }) {
 }
 
 async function updateLine(db, storyId, id, data) {
-    return await setDoc(doc(db, `stories/${ storyId }/lines`, id), {
+    return await setDoc(doc(db, `${ STORIES_COLLECTION }/${ storyId }/${ LINES_COLLECTION }`, id), {
         data
     }, { merge: true })
 }
 
 async function deleteLine(db, storyId, id) {
-    return await deleteDoc(doc(db, `stories/${ storyId }/lines`, id))
+    return await deleteDoc(doc(db, `${ STORIES_COLLECTION }/${ storyId }/${ LINES_COLLECTION }`, id))
 }
 
 export {
@@ -81,6 +91,7 @@ export {
     createStory,
     createUser,
     deleteLine,
+    lastLineQuery,
     linesQuery,
     PAGE_SIZE,
     setNextPlayer,

@@ -47,6 +47,11 @@
     flex-direction: column;
 }
 
+.Story-Controls, .Stories-Controls  {
+    display: flex;
+    gap: 4px;
+}
+
 .Story-Info {
     display: flex;
     justify-content: space-between;
@@ -62,6 +67,7 @@
 .Lines-Wrapper {
     flex-grow: 1;
     overflow: auto;
+    padding-right: 8px;
 }
 
 .Lines-Wrapper > div {
@@ -69,10 +75,17 @@
     flex-direction: column-reverse;
 }
 
-.Lines-LoadMore {
+.Lines-LoadUp {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.Lines-LoadUp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 12px;
 }
 
 .Lines-Controls {
@@ -97,7 +110,7 @@
 }
 
 ::-webkit-scrollbar {
-    width: 2px;
+    width: 4px;
     height: 2px;
 }
 

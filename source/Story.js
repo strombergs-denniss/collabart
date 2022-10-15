@@ -61,13 +61,12 @@ function Story() {
                 <Typography.Title level={ 3 }>
                     { story.name }
                 </Typography.Title>
-                <div>
-                    <Button
+                <div className="Story-Controls">
+                    { /* <Button
                         onClick={ switchMode }
-                        style={ { marginRight: 4 } }
                     >
                         { mode ? 'WRITE' : 'READ' }
-                    </Button>
+                    </Button> */ }
                     <Button
                         onClick={ openModal }
                         type="link"
