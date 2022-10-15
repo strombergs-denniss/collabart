@@ -2,7 +2,7 @@ import { Form, Input, InputNumber, Select, Switch } from 'antd'
 import { useSelector } from 'react-redux'
 
 function StoryForm(props) {
-    const { form, story, disabled = false } = props
+    const { form, story, disabled = false, editMode = false } = props
     const users = useSelector(state => state.user.users)
     const initialValues = story || {
         inputLimit: 1024
@@ -19,8 +19,6 @@ function StoryForm(props) {
             </Select.Option>
         )
     }
-
-    console.log(initialValues)
 
     return (
         <Form
@@ -92,6 +90,22 @@ function StoryForm(props) {
             >
                 <Switch disabled={ disabled } />
             </Form.Item>
+            { editMode && (
+                <Form.Item
+                    label="Current Player"
+                    name="currentPlayer"
+                    rules={ [{
+                        required: true,
+                        message:'Current player must not be empty'
+                    }] }
+                >
+                    <Select
+                        disabled={ disabled }
+                    >
+                        { users.map(renderUserOption) }
+                    </Select>
+                </Form.Item>
+            ) }
         </Form>
     )
 }

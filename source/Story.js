@@ -1,10 +1,11 @@
+import { SettingOutlined } from '@ant-design/icons'
 import { Button, Form, Modal, Typography } from 'antd'
 import { onSnapshot } from 'firebase/firestore'
 import { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import Context from './Context'
-import { storyDoc } from './Firebase'
+import { storyDoc, updateStory } from './Firebase'
 import Lines from './Lines'
 import Loader from './Loader'
 import StoryForm from './StoryForm'
@@ -15,6 +16,7 @@ function Story() {
     const [form] = Form.useForm()
     const [story, setStory] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [mode, setMode] = useState(false)
 
     useEffect(() => {
         onSnapshot(storyDoc(db, id), doc => {
@@ -22,19 +24,29 @@ function Story() {
                 id: doc.id,
                 ...doc.data()
             })
+            form.setFieldsValue(doc.data())
         })
     }, [])
 
     const openModal = () => {
         setIsModalOpen(true)
+        form.setFieldsValue(story)
     }
 
     const handleOk = () => {
-
+        form.validateFields().then(values => {
+            form.resetFields()
+            updateStory(db, story, values)
+            setIsModalOpen(false)
+        })
     }
 
     const handleCancel = () => {
         setIsModalOpen(false)
+    }
+
+    const switchMode = () => {
+        setMode(!mode)
     }
 
     if (!story) {
@@ -49,9 +61,20 @@ function Story() {
                 <Typography.Title level={ 3 }>
                     { story.name }
                 </Typography.Title>
-                <Button onClick={ openModal }>
-                    View
-                </Button>
+                <div className="Story-Controls">
+                    { /* <Button
+                        onClick={ switchMode }
+                    >
+                        { mode ? 'WRITE' : 'READ' }
+                    </Button> */ }
+                    <Button
+                        onClick={ openModal }
+                        type="link"
+                        shape="circle"
+                    >
+                        <SettingOutlined />
+                    </Button>
+                </div>
             </div>
             <Modal
                 title="Story"
@@ -59,10 +82,11 @@ function Story() {
                 onOk={ handleOk }
                 onCancel={ handleCancel }
                 width={ 1024 }
+                okText="Save"
             >
-                <StoryForm form={ form } story={ story } disabled />
+                <StoryForm form={ form } story={ story } editMode />
             </Modal>
-            <Lines story={ story } />
+            <Lines story={ story } mode={ mode } />
         </div>
     )
 }

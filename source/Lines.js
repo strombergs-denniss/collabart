@@ -1,4 +1,4 @@
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { CaretDownOutlined, CaretUpOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { Button, Input, List, Modal } from 'antd'
 import { onSnapshot } from 'firebase/firestore'
 import { useContext, useEffect, useState } from 'react'
@@ -6,12 +6,12 @@ import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 
 import Context from './Context'
-import { createLine, deleteLine, linesQuery, setNextPlayer, updateLine } from './Firebase'
+import { createLine, deleteLine, lastLineQuery, linesQuery, PAGE_SIZE, setNextPlayer, updateLine } from './Firebase'
 import SkipModal from './SkipModal'
 import { loop } from './Utility'
 
 function Lines(props) {
-    const { story } = props
+    const { story, mode } = props
     const { db } = useContext(Context)
     const { id: storyId } = useParams()
     const user = useSelector(state => state.user.user)
@@ -21,24 +21,42 @@ function Lines(props) {
     const [editableLine, setEditableLine] = useState(null)
     const [deletableLine, setDeletableLine] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [snap, setSnap] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [lastLine, setLastLine] = useState(null)
+
+    const linesSnap = (collection, isReverse = false) => {
+        const lines = []
+
+        collection.forEach(doc => {
+            if (isReverse) {
+                lines.push(doc)
+            } else {
+                lines.unshift(doc)
+            }
+        })
+
+        setLines(lines)
+        setIsLoading(false)
+    }
 
     useEffect(() => {
-        onSnapshot(linesQuery(db, storyId), collection => {
-            const lines = []
-
+        onSnapshot(lastLineQuery(db, storyId), collection => {
             collection.forEach(doc => {
-                lines.push({
-                    id: doc.id,
-                    ...doc.data()
-                })
+                setLastLine(doc)
             })
+        })
 
-            setLines(lines)
+        setSnap({
+            unsubscribe: onSnapshot(linesQuery(db, storyId), collection => {
+                linesSnap(collection)
+            })
         })
     }, [])
 
     const renderLine = line => {
-        const { id, uid, data } = line
+        const { id } = line
+        const { uid, data } = line.data()
         const lineUser = users.find(user => uid == user.id) || {}
 
         const onEdit = () => {
@@ -116,6 +134,68 @@ function Lines(props) {
         setIsModalOpen(false)
     }
 
+    const renderLoadUp= () => {
+        if (lines.length < PAGE_SIZE && lines.length && lastLine && lines[lines.length - 1].id != lastLine.id) {
+            return null
+        }
+
+        const loadMore = () => {
+            if (isLoading) {
+                return
+            }
+
+            if (snap) {
+                setIsLoading(true)
+                snap.unsubscribe()
+
+                setSnap({
+                    unsubscribe: onSnapshot(linesQuery(db, storyId, lines[0]), collection => {
+                        linesSnap(collection)
+                    })
+                })
+            }
+        }
+
+        return (
+            <div className="Lines-LoadUp">
+                <Button onClick={ loadMore } type="link" shape="circle">
+                    <CaretUpOutlined />
+                </Button>
+            </div>
+        )
+    }
+
+    const renderLoadDown= () => {
+        if (lines.length && lastLine && lines[lines.length - 1].id == lastLine.id) {
+            return null
+        }
+
+        const loadMore = () => {
+            if (isLoading) {
+                return
+            }
+
+            if (snap) {
+                setIsLoading(true)
+                snap.unsubscribe()
+
+                setSnap({
+                    unsubscribe: onSnapshot(linesQuery(db, storyId, lines[lines.length - 1], true), collection => {
+                        linesSnap(collection, true)
+                    })
+                })
+            }
+        }
+
+        return (
+            <div className="Lines-LoadUp">
+                <Button onClick={ loadMore } type="link" shape="circle">
+                    <CaretDownOutlined />
+                </Button>
+            </div>
+        )
+    }
+
     const currentPlayer = users.find(user => user.id === story.currentPlayer)
 
     return (
@@ -124,7 +204,10 @@ function Lines(props) {
                 <List
                     dataSource={ lines }
                     renderItem={ renderLine }
+                    loadMore={ renderLoadUp() }
+                    loading={ isLoading }
                 />
+                { renderLoadDown() }
             </div>
             <Modal
                 title="Delete Line"
