@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 
 import Context from './Context'
-import { createLine, deleteLine, lastLineQuery, linesQuery, PAGE_SIZE, setNextPlayer, updateLine } from './Firebase'
+import { createLine, deleteLine, firstLineQuery, lastLineQuery, linesQuery, PAGE_SIZE, setNextPlayer, updateLine } from './Firebase'
 import SkipModal from './SkipModal'
 import { loop } from './Utility'
 
@@ -24,6 +24,7 @@ function Lines(props) {
     const [snap, setSnap] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [lastLine, setLastLine] = useState(null)
+    const [firstLine, setFirstLine] = useState(null)
 
     const linesSnap = (collection, isReverse = false) => {
         const lines = []
@@ -41,6 +42,12 @@ function Lines(props) {
     }
 
     useEffect(() => {
+        onSnapshot(firstLineQuery(db, storyId), collection => {
+            collection.forEach(doc => {
+                setFirstLine(doc)
+            })
+        })
+
         onSnapshot(lastLineQuery(db, storyId), collection => {
             collection.forEach(doc => {
                 setLastLine(doc)
@@ -135,7 +142,7 @@ function Lines(props) {
     }
 
     const renderLoadUp= () => {
-        if (lines.length < PAGE_SIZE && lines.length && lastLine && lines[lines.length - 1].id != lastLine.id) {
+        if (lines.length && firstLine && lines[0].id == firstLine.id) {
             return null
         }
 

@@ -5,7 +5,8 @@ function StoryForm(props) {
     const { form, story, disabled = false, editMode = false } = props
     const users = useSelector(state => state.user.users)
     const initialValues = story || {
-        inputLimit: 1024
+        inputLimit: 1024,
+        allowTurnSkip: false
     }
 
     if (!form) {

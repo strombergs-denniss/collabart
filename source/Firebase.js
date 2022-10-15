@@ -65,6 +65,10 @@ function lastLineQuery(db, id) {
     return query(collection(db, `${ STORIES_COLLECTION }/${ id }/${ LINES_COLLECTION }`), orderBy('timestamp', 'desc'), limit(1))
 }
 
+function firstLineQuery(db, id) {
+    return query(collection(db, `${ STORIES_COLLECTION }/${ id }/${ LINES_COLLECTION }`), orderBy('timestamp', 'asc'), limit(1))
+}
+
 async function createLine(db, storyId, { uid, data }) {
     return await addDoc(
         collection(db, `${ STORIES_COLLECTION }/${ storyId }/${ LINES_COLLECTION }`),
@@ -91,6 +95,7 @@ export {
     createStory,
     createUser,
     deleteLine,
+    firstLineQuery,
     lastLineQuery,
     linesQuery,
     PAGE_SIZE,
