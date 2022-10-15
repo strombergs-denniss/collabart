@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, limit, orderBy, query, serverTimestamp, setDoc, startAt, where } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, limit, orderBy, query, serverTimestamp, setDoc, startAt } from 'firebase/firestore'
 
 import { createDiff, randomInt } from './Utility'
 
@@ -8,7 +8,7 @@ const LINES_COLLECTION = 'lines'
 const PAGE_SIZE = 16
 
 function usersQuery(db) {
-    return query(collection(db, USERS_COLLECTION), where('order', '>', -1), orderBy('order'))
+    return query(collection(db, USERS_COLLECTION))
 }
 
 async function createUser(db, { uid, name }) {
