@@ -5,11 +5,12 @@ import { useSelector } from 'react-redux'
 function StoryForm(props) {
     const { form, story, disabled = false, editMode = false } = props
     const users = useSelector(state => state.user.users)
-    const [isGameMode, setIsGameMode] = useState(false)
     const initialValues = story || {
         inputLimit: 1024,
-        allowTurnSkip: false
+        allowTurnSkip: false,
+        isGameMode: false
     }
+    const [isGameMode, setIsGameMode] = useState(initialValues.isGameMode)
 
     if (!form) {
         return null
