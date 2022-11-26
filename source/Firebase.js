@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, limit, orderBy, query, serverTimestamp, setDoc, startAt } from 'firebase/firestore'
 
-import { createDiff, randomInt } from './Utility'
+import { createDiff, randomInt, removeSingleItemFromArray } from './Utility'
 
 const USERS_COLLECTION = 'users'
 const STORIES_COLLECTION = 'stories'
@@ -26,14 +26,19 @@ function storyDoc(db, id) {
     return doc(db, STORIES_COLLECTION, id)
 }
 
-async function createStory(db, { name, description, inputLimit, players, allowTurnSkip }) {
+async function createStory(db, { name, description, inputLimit, players, allowTurnSkip, isGameMode, gameMaster = null }) {
+    const filteredPlayers = isGameMode ? removeSingleItemFromArray(players, gameMaster) : players
+
     return await addDoc(collection(db, STORIES_COLLECTION), {
         name,
         description,
         inputLimit,
-        players,
+        players: filteredPlayers,
         allowTurnSkip,
-        currentPlayer: players[randomInt(0, players.length - 1)]
+        isGameMode,
+        gameMaster,
+        currentPlayer: filteredPlayers[randomInt(0, players.length - 1)],
+        isAwaitingResponseFromGameMaster: isGameMode ? true : false
     })
 }
 
@@ -46,6 +51,12 @@ async function updateStory(db, oldStory, newStory) {
 async function setNextPlayer(db, storyId, currentPlayer) {
     return await setDoc(doc(db, `${ STORIES_COLLECTION }/${ storyId }`), {
         currentPlayer
+    }, { merge: true })
+}
+
+async function setIsAwaitingResponseFromGameMaster(db, storyId, isAwaitingResponseFromGameMaster) {
+    return await setDoc(doc(db, `${ STORIES_COLLECTION }/${ storyId }`), {
+        isAwaitingResponseFromGameMaster
     }, { merge: true })
 }
 
@@ -99,6 +110,7 @@ export {
     lastLineQuery,
     linesQuery,
     PAGE_SIZE,
+    setIsAwaitingResponseFromGameMaster,
     setNextPlayer,
     storiesQuery,
     storyDoc,

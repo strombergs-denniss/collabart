@@ -43,9 +43,20 @@ function createDiff(a, b) {
     return diff
 }
 
+function removeSingleItemFromArray(array, item) {
+    const index = array.indexOf(item)
+
+    if (index !== -1) {
+        array.splice(index, 1)
+    }
+
+    return array
+}
+
 export {
     compareArrays,
     createDiff,
     loop,
-    randomInt
+    randomInt,
+    removeSingleItemFromArray
 }
