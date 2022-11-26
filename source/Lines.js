@@ -107,9 +107,11 @@ function Lines(props) {
                     setEditableLine(null)
                     setInput('')
                 } else if (story.isAwaitingResponseFromGameMaster) {
-                    createLine(db, storyId, { uid: user.id, data: input })
-                    setIsAwaitingResponseFromGameMaster(db, storyId, false)
-                    setInput('')
+                    if (user.id === story.gameMaster) {
+                        createLine(db, storyId, { uid: user.id, data: input })
+                        setIsAwaitingResponseFromGameMaster(db, storyId, false)
+                        setInput('')
+                    }
                 } else {
                     const currentPlayer = users.find(user => user.id === story.currentPlayer)
                     const currentIndex = story.players.findIndex(player => player === story.currentPlayer)
@@ -119,9 +121,11 @@ function Lines(props) {
                     if (currentPlayer && currentPlayer.id === user.id && nextPlayer) {
                         createLine(db, storyId, { uid: user.id, data: input })
                         setNextPlayer(db, storyId, nextPlayer)
+
                         if (story.isGameMode) {
                             setIsAwaitingResponseFromGameMaster(db, storyId, true)
                         }
+
                         setInput('')
                     }
                 }
