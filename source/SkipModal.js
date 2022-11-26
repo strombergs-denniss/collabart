@@ -36,7 +36,7 @@ function SkipModal(props) {
         return null
     }
 
-    if (currentPlayer.id !== user.id || editableLine) {
+    if (currentPlayer.id !== user.id || editableLine || story.isAwaitingResponseFromGameMaster) {
         return null
     }
 

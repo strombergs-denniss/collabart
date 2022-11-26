@@ -1,9 +1,11 @@
 import { Form, Input, InputNumber, Select, Switch } from 'antd'
+import { useState } from 'react'
 import { useSelector } from 'react-redux'
 
 function StoryForm(props) {
     const { form, story, disabled = false, editMode = false } = props
     const users = useSelector(state => state.user.users)
+    const [isGameMode, setIsGameMode] = useState(false)
     const initialValues = story || {
         inputLimit: 1024,
         allowTurnSkip: false
@@ -91,6 +93,29 @@ function StoryForm(props) {
             >
                 <Switch disabled={ disabled } />
             </Form.Item>
+            <Form.Item
+                label="Game mode"
+                name="isGameMode"
+                valuePropName="checked"
+            >
+                <Switch disabled={ disabled } onChange={value => setIsGameMode(value)}/>
+            </Form.Item>
+            { isGameMode && (
+                <Form.Item
+                    label="Game master"
+                    name="gameMaster"
+                    rules={ [{
+                        required: true,
+                        message:'Game master must not be empty'
+                    }] }
+                >
+                    <Select
+                        disabled={ disabled }
+                    >
+                        { users.map(renderUserOption) }
+                    </Select>
+                </Form.Item>
+            ) }
             { editMode && (
                 <Form.Item
                     label="Current Player"

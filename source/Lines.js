@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 
 import Context from './Context'
-import { createLine, deleteLine, firstLineQuery, lastLineQuery, linesQuery, PAGE_SIZE, setNextPlayer, updateLine } from './Firebase'
+import { createLine, deleteLine, firstLineQuery, lastLineQuery, linesQuery, PAGE_SIZE, setIsAwaitingResponseFromGameMaster, setNextPlayer, updateLine } from './Firebase'
 import SkipModal from './SkipModal'
 import { loop } from './Utility'
 
@@ -106,6 +106,10 @@ function Lines(props) {
                     updateLine(db, storyId, editableLine, input)
                     setEditableLine(null)
                     setInput('')
+                } else if (story.isAwaitingResponseFromGameMaster) {
+                    createLine(db, storyId, { uid: user.id, data: input })
+                    setIsAwaitingResponseFromGameMaster(db, storyId, false)
+                    setInput('')
                 } else {
                     const currentPlayer = users.find(user => user.id === story.currentPlayer)
                     const currentIndex = story.players.findIndex(player => player === story.currentPlayer)
@@ -115,6 +119,9 @@ function Lines(props) {
                     if (currentPlayer && currentPlayer.id === user.id && nextPlayer) {
                         createLine(db, storyId, { uid: user.id, data: input })
                         setNextPlayer(db, storyId, nextPlayer)
+                        if (story.isGameMode) {
+                            setIsAwaitingResponseFromGameMaster(db, storyId, true)
+                        }
                         setInput('')
                     }
                 }
@@ -203,7 +210,8 @@ function Lines(props) {
         )
     }
 
-    const currentPlayer = users.find(user => user.id === story.currentPlayer)
+    const currentPlayer = story.isGameMode && story.isAwaitingResponseFromGameMaster ?
+        users.find(user => user.id === story.gameMaster) : users.find(user => user.id === story.currentPlayer)
 
     return (
         <div className="Lines">
